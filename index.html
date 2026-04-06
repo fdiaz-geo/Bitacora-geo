@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1B5E20">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Bitácora GEO">
+  <meta name="description" content="Check List Diario de Revisión de Equipos — Geotécnica Soluciones">
+  <title>Bitácora Digital — Geotécnica</title>
+  <link rel="manifest" id="pwa-manifest">
+  <style>
+    /* ── Reset & Variables ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green:      #1B5E20;
+      --green2:     #2E7D32;
+      --green3:     #4CAF50;
+      --green-bg:   #E8F5E9;
+      --red:        #C62828;
+      --red-bg:     #FFEBEE;
+      --amber:      #F57F17;
+      --amber-bg:   #FFF8E1;
+      --text:       #1A1A1A;
+      --text2:      #555;
+      --border:     #D0D0D0;
+      --card-bg:    #FFFFFF;
+      --page-bg:    #F4F6F4;
+      --radius:     14px;
+      --radius-sm:  8px;
+      --shadow:     0 2px 10px rgba(0,0,0,0.08);
+      --touch:      48px;
+      --font:       -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    html { font-family: var(--font); font-size: 16px; background: var(--page-bg); color: var(--text); }
+    body { min-height: 100vh; padding-bottom: 40px; }
+    input, select, textarea, button { font-family: var(--font); font-size: 1rem; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--green3); outline-offset: 2px; }
+
+    /* ── Header ── */
+    .app-header {
+      background: var(--green);
+      color: #fff;
+      padding: 14px 16px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+    .logo-circle {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 900; flex-shrink: 0;
+    }
+    .header-text { flex: 1; }
+    .header-text h1 { font-size: 1rem; font-weight: 700; line-height: 1.2; }
+    .header-text p  { font-size: 0.72rem; opacity: 0.85; margin-top: 2px; }
+
+    /* ── Step Wizard ── */
+    .step-nav {
+      background: var(--green2);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+    }
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      flex: 1;
+    }
+    .step-bubble {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      color: rgba(255,255,255,0.7);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 700;
+      border: 2px solid rgba(255,255,255,0.3);
+      transition: all 0.25s;
+    }
+    .step-bubble.active { background: #fff; color: var(--green); border-color: #fff; }
+    .step-bubble.done   { background: var(--green3); color: #fff; border-color: var(--green3); }
+    .step-label { font-size: 0.6rem; color: rgba(255,255,255,0.7); text-align: center; line-height: 1.2; }
+    .step-label.active { color: #fff; font-weight: 600; }
+    .step-connector { flex: 0 0 12px; height: 2px; background: rgba(255,255,255,0.25); margin-top: -15px; }
+
+    /* ── Main Content ── */
+    main { max-width: 600px; margin: 0 auto; padding: 16px; }
+
+    /* ── Cards / Sections ── */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .card-header {
+      background: var(--green-bg);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #C8E6C9;
+    }
+    .card-header h2 { font-size: 0.95rem; font-weight: 700; color: var(--green); }
+    .card-body { padding: 16px; }
+
+    /* ── Form Fields ── */
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text2); margin-bottom: 5px; }
+    label .req { color: var(--red); margin-left: 2px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .field-row.three { grid-template-columns: 1fr 1fr 1fr; }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="week"],
+    select,
+    textarea {
+      width: 100%;
+      height: var(--touch);
+      padding: 0 12px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #fff;
+      color: var(--text);
+      font-size: 1rem;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23555' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+    textarea { height: auto; min-height: 80px; padding: 10px 12px; resize: vertical; line-height: 1.4; }
+    input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.6; }
+    .readonly-field {
+      width: 100%; height: var(--touch); padding: 0 12px;
+      border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      background: #F5F5F5; color: var(--text2); font-size: 1rem;
+      display: flex; align-items: center;
+    }
+    .calc-badge {
+      font-size: 0.72rem; background: var(--green-bg); color: var(--green);
+      padding: 2px 7px; border-radius: 20px; margin-left: 6px; font-weight: 600;
+    }
+
+    /* ── Tipo buttons ── */
+    .tipo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .tipo-btn {
+      min-height: 70px; border-radius: var(--radius); border: 2px solid var(--border);
+      background: #fff; cursor: pointer; padding: 10px 8px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 6px; transition: all 0.2s; text-align: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tipo-btn:active { transform: scale(0.97); }
+    .tipo-btn.selected { border-color: var(--green); background: var(--green-bg); }
+    .tipo-icon { font-size: 1.8rem; line-height: 1; }
+    .tipo-label { font-size: 0.78rem; font-weight: 600; color: var(--text); line-height: 1.3; }
+
+    /* ── BIM Pill Buttons ── */
+    .pill-group {
+      display: flex; gap: 8px;
+    }
+    .pill {
+      flex: 1; min-height: var(--touch); border-radius: 50px;
+      border: 2px solid var(--border); background: #fff;
+      font-size: 0.9rem; font-weight: 700; cursor: pointer;
+      transition: all 0.18s; -webkit-tap-highlight-color: transparent;
+    }
+    .pill:active { transform: scale(0.95); }
+    .pill[data-v="B"].selected { background: #2E7D32; border-color: #2E7D32; color: #fff; }
+    .pill[data-v="I"].selected { background: #F57F17; border-color: #F57F17; color: #fff; }
+    .pill[data-v="M"].selected { background: var(--red); border-color: var(--red); color: #fff; }
+    .pill[data-v="SI"].selected  { background: var(--red); border-color: var(--red); color: #fff; }
+    .pill[data-v="NO"].selected  { background: #2E7D32; border-color: #2E7D32; color: #fff; }
+    .pill[data-invert="true"][data-v="SI"].selected { background: #2E7D32; border-color: #2E7D32; color: #fff; }
+    .pill[data-invert="true"][data-v="NO"].selected { background: var(--red); border-color: var(--red); color: #fff; }
+
+    /* ── Fuel Selector ── */
+    .fuel-group { display: flex; gap: 6px; flex-wrap: wrap; }
+    .fuel-btn {
+      flex: 1; min-width: 44px; min-height: var(--touch);
+      border-radius: 50px; border: 2px solid var(--border);
+      background: #fff; font-size: 0.82rem; font-weight: 700;
+      cursor: pointer; transition: all 0.18s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .fuel-btn.selected { background: var(--green); border-color: var(--green); color: #fff; }
+
+    /* ── Checklist Item ── */
+    .check-item {
+      padding: 12px 0;
+      border-bottom: 1px solid #F0F0F0;
+    }
+    .check-item:last-child { border-bottom: none; }
+    .check-item.malo { background: var(--red-bg); margin: 0 -16px; padding: 12px 16px; border-radius: var(--radius-sm); }
+    .check-label { font-size: 0.88rem; font-weight: 500; color: var(--text); margin-bottom: 8px; }
+    .check-num { color: var(--text2); font-size: 0.78rem; margin-right: 4px; }
+    .obs-field { margin-top: 8px; }
+    .obs-field textarea { min-height: 60px; font-size: 0.9rem; border-color: var(--red); }
+    .obs-label { font-size: 0.78rem; color: var(--red); font-weight: 600; margin-bottom: 4px; }
+
+    /* ── Navigation Buttons ── */
+    .nav-bar {
+      display: flex; gap: 10px; margin-top: 20px;
+      position: sticky; bottom: 0;
+      background: linear-gradient(transparent, var(--page-bg) 40%);
+      padding: 20px 0 8px;
+    }
+    .btn {
+      flex: 1; min-height: 52px; border-radius: 50px;
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+      border: none; transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-outline { background: #fff; color: var(--green); border: 2px solid var(--green); }
+    .btn-primary { background: var(--green); color: #fff; }
+    .btn-submit  { background: var(--green2); color: #fff; font-size: 1.05rem; }
+    .btn:disabled { opacity: 0.5; pointer-events: none; }
+
+    /* ── Info Banner ── */
+    .banner {
+      background: var(--amber-bg);
+      border-left: 4px solid var(--amber);
+      padding: 10px 14px; border-radius: var(--radius-sm);
+      font-size: 0.82rem; color: var(--amber); margin-bottom: 12px;
+    }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: #1B5E20; color: #fff; padding: 14px 24px;
+      border-radius: 50px; font-size: 0.95rem; font-weight: 600;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25); z-index: 999;
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+      white-space: nowrap; max-width: 90vw; text-align: center;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.error { background: var(--red); }
+
+    /* ── Loading Overlay ── */
+    #loading {
+      position: fixed; inset: 0; background: rgba(27,94,32,0.85);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 1000; display: none;
+    }
+    .spinner {
+      width: 48px; height: 48px; border: 5px solid rgba(255,255,255,0.3);
+      border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    .loading-text { color: #fff; margin-top: 16px; font-size: 0.95rem; font-weight: 600; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Step visibility ── */
+    .step { display: none; }
+    .step.active { display: block; }
+    .hidden { display: none !important; }
+
+    /* ── Draft indicator ── */
+    .draft-bar {
+      text-align: center; font-size: 0.75rem; color: var(--text2);
+      padding: 4px 0 0; opacity: 0.7;
+    }
+    .section-divider { font-size: 0.8rem; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 2px solid var(--green-bg); }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="app-header">
+  <div class="logo-circle">G</div>
+  <div class="header-text">
+    <h1>Bitácora Digital de Flota</h1>
+    <p>Geotécnica Soluciones — Tegucigalpa, HN</p>
+  </div>
+</header>
+
+<!-- ── WIZARD STEPS ── -->
+<nav class="step-nav" id="stepNav" aria-label="Pasos del formulario"></nav>
+
+<!-- ── MAIN FORM ── -->
+<main id="mainForm">
+
+  <!-- ═══ PASO 1: Tipo y Equipo ═══ -->
+  <section class="step" id="step-1">
+    <div class="card">
+      <div class="card-header"><h2>Tipo de Equipo</h2></div>
+      <div class="card-body">
+        <div class="field">
+          <label>Selecciona el tipo de equipo <span class="req">*</span></label>
+          <div class="tipo-grid" id="tipoGrid"></div>
+        </div>
+        <div class="field" id="equipoField" style="display:none">
+          <label for="sel_equipo">Nombre del equipo <span class="req">*</span></label>
+          <select id="sel_equipo">
+            <option value="">— Seleccionar equipo —</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <button class="btn btn-primary" onclick="goNext()">Siguiente →</button>
+    </div>
+  </section>
+
+  <!-- ═══ PASO 2: Datos Generales ═══ -->
+  <section class="step" id="step-2">
+    <div class="card">
+      <div class="card-header"><h2>Datos Generales</h2></div>
+      <div class="card-body">
+        <div class="field">
+          <label for="f_operador">Operador <span class="req">*</span></label>
+          <input type="text" id="f_operador" placeholder="Nombre completo del operador">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="f_fecha">Fecha <span class="req">*</span></label>
+            <input type="date" id="f_fecha">
+          </div>
+          <div class="field">
+            <label>Día de la semana</label>
+            <div class="readonly-field" id="f_dia">—</div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="f_proyecto">Proyecto <span class="req">*</span></label>
+          <input type="text" id="f_proyecto" placeholder="Nombre del proyecto">
+        </div>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <button class="btn btn-outline" onclick="goPrev()">← Anterior</button>
+      <button class="btn btn-primary" onclick="goNext()">Siguiente →</button>
+    </div>
+  </section>
+
+  <!-- ═══ PASO 3: Producción ═══ -->
+  <section class="step" id="step-3">
+
+    <!-- Variante A -->
+    <div class="card" id="prod-a">
+      <div class="card-header"><h2>Producción</h2></div>
+      <div class="card-body">
+        <div class="field-row">
+          <div class="field">
+            <label for="f_horo_ini">Horómetro inicial <span class="req">*</span></label>
+            <input type="number" id="f_horo_ini" step="0.1" min="0" placeholder="0.0" oninput="calcHoras()">
+          </div>
+          <div class="field">
+            <label for="f_horo_fin">Horómetro final <span class="req">*</span></label>
+            <input type="number" id="f_horo_fin" step="0.1" min="0" placeholder="0.0" oninput="calcHoras()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Total de horas diarias <span class="calc-badge">AUTO</span></label>
+          <div class="readonly-field" id="f_horas_dia">0.0 h</div>
+        </div>
+
+        <!-- Solo PIL -->
+        <div class="field" id="ml_field">
+          <label for="f_ml">Metros lineales perforados <span class="req">*</span></label>
+          <input type="number" id="f_ml" step="0.1" min="0" placeholder="0.0" oninput="updateWeeklyDisplay()">
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Variante B: Planta de Inyección -->
+    <div class="card hidden" id="prod-b">
+      <div class="card-header"><h2>Producción</h2></div>
+      <div class="card-body">
+        <div class="field-row">
+          <div class="field">
+            <label for="f_horo_ini_b">Horómetro inicial <span class="req">*</span></label>
+            <input type="number" id="f_horo_ini_b" step="0.1" min="0" placeholder="0.0" oninput="calcHorasB()">
+          </div>
+          <div class="field">
+            <label for="f_horo_fin_b">Horómetro final <span class="req">*</span></label>
+            <input type="number" id="f_horo_fin_b" step="0.1" min="0" placeholder="0.0" oninput="calcHorasB()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Total de horas diarias <span class="calc-badge">AUTO</span></label>
+          <div class="readonly-field" id="f_horas_dia_b">0.0 h</div>
+        </div>
+        <div class="field">
+          <label for="f_bolsas">Bolsas de concreto <span class="req">*</span></label>
+          <input type="number" id="f_bolsas" step="1" min="0" placeholder="0" oninput="updateWeeklyDisplayB()">
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-bar">
+      <button class="btn btn-outline" onclick="goPrev()">← Anterior</button>
+      <button class="btn btn-primary" onclick="goNext()">Siguiente →</button>
+    </div>
+  </section>
+
+  <!-- ═══ PASO 4: Revisiones ═══ -->
+  <section class="step" id="step-4">
+    <div class="card">
+      <div class="card-header"><h2>Revisiones Diarias</h2></div>
+      <div class="card-body" id="checklist-body">
+        <!-- Generado dinámicamente por JS -->
+      </div>
+    </div>
+    <div class="card" id="obs-card">
+      <div class="card-header"><h2>Observaciones Generales</h2></div>
+      <div class="card-body">
+        <div class="field">
+          <label for="f_obs" id="obs-main-label">Observaciones</label>
+          <textarea id="f_obs" placeholder="Ingrese cualquier observación adicional sobre el estado del equipo..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <button class="btn btn-outline" onclick="goPrev()">← Anterior</button>
+      <button class="btn btn-primary" onclick="goNext()">Siguiente →</button>
+    </div>
+  </section>
+
+  <!-- ═══ PASO 5: Firmas ═══ -->
+  <section class="step" id="step-5">
+    <div class="card">
+      <div class="card-header"><h2>Firmas de Cierre</h2></div>
+      <div class="card-body">
+        <div class="banner">Nombre completo de cada responsable. La firma digital estará disponible en próxima versión.</div>
+        <div class="field">
+          <label for="f_firma_op">Operador <span class="req">*</span></label>
+          <input type="text" id="f_firma_op" placeholder="Nombre completo del operador">
+        </div>
+        <div class="field">
+          <label for="f_firma_ing">Ing. de Proyecto <span class="req">*</span></label>
+          <input type="text" id="f_firma_ing" placeholder="Nombre completo del ingeniero">
+        </div>
+      </div>
+    </div>
+    <div class="card" style="background: var(--green-bg);">
+      <div class="card-body" style="text-align:center; padding: 20px;">
+        <div style="font-size:0.85rem; color:var(--text2); margin-bottom:10px;">Al enviar, esta bitácora quedará registrada en Google Sheets.</div>
+        <button class="btn btn-submit" id="submitBtn" onclick="submitForm()" style="max-width:300px; margin:0 auto; display:block;">
+          Enviar Bitácora ✓
+        </button>
+        <div class="draft-bar" id="draftStatus">Borrador guardado automáticamente</div>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <button class="btn btn-outline" onclick="goPrev()">← Anterior</button>
+    </div>
+  </section>
+
+</main>
+
+<!-- ── TOAST ── -->
+<div id="toast" role="alert" aria-live="assertive"></div>
+
+<!-- ── LOADING OVERLAY ── -->
+<div id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text">Enviando bitácora...</div>
+</div>
+
+<script>
+// ╔══════════════════════════════════════════════════════════╗
+//   CONFIGURACIÓN — Reemplaza con tu URL de Google Apps Script
+// ╚══════════════════════════════════════════════════════════╝
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx93WJXbUQTzwaC4rcntNRYKOyabtGubtQaA0XZAbURNVuUNl15mus5iKqbzqfrWxQ_/exec';
+
+// ══════════════════════════════════════════════════════════
+//  DEFINICIONES
+// ══════════════════════════════════════════════════════════
+const TIPOS_EQUIPO = [
+  { codigo: 'PIL', label: 'Piloteadora / Perforadora', icon: '🔩' },
+  { codigo: 'COM', label: 'Compresor',                 icon: '💨' },
+  { codigo: 'EXC', label: 'Excavadora CAT',            icon: '🚜' },
+  { codigo: 'GRU', label: 'Grúa Grove',                icon: '🏗️' },
+  { codigo: 'INY', label: 'Planta de Inyección',       icon: '🧪' },
+  { codigo: 'OTR', label: 'Otro equipo',               icon: '⚙️' },
+];
+
+const STEP_LABELS = ['Equipo', 'Datos', 'Producción', 'Revisiones', 'Firmas'];
+
+// Checklist Variante A
+const CL_A = [
+  { id: 'A_Combustible',         num: 1,  label: 'Nivel de combustible',                      type: 'fuel', showFor: ['PIL','COM','EXC','GRU','OTR'] },
+  { id: 'A_Aceite_Motor',        num: 2,  label: 'Nivel de aceite de motor',                  type: 'bim',  showFor: ['PIL','COM','EXC','GRU','OTR'] },
+  { id: 'A_Aceite_Hidraulico',   num: 3,  label: 'Nivel de aceite hidráulico',                type: 'bim',  showFor: ['PIL','COM','EXC','GRU','OTR'] },
+  { id: 'A_Reservorio_Compresores', num: 4, label: 'Nivel de reservorio de aceite "Compresores"', type: 'bim', showFor: ['COM'] },
+  { id: 'A_Aceite_Bombas_MR',    num: 5,  label: 'Nivel de aceite de bombas M.R.',            type: 'bim',  showFor: ['PIL','COM','EXC','GRU','OTR'] },
+  { id: 'A_Coolant_Agua',        num: 6,  label: 'Nivel de coolant / agua',                   type: 'bim',  showFor: ['PIL','COM','EXC','GRU','OTR'] },
+  { id: 'A_Aceite_Mesa_Rotacion', num: 7, label: 'Nivel de aceite mesa de rotación o cabezote', type: 'bim', showFor: ['PIL','COM','EXC','GRU','OTR'] },
+  { id: 'A_Filtro_Sep_Combustible', num: 8, label: 'Filtro separador agua/combustible',       type: 'bim',  showFor: ['PIL','COM','EXC','GRU','OTR'] },
+  { id: 'A_Filtro_Aire_Motor',   num: 9,  label: 'Filtro de aire de motor',                   type: 'bim',  showFor: ['PIL','COM','EXC','GRU','OTR'] },
+  { id: 'A_Filtro_Aire_Compresor', num:10,label: 'Filtro de aire de unidad compresora',       type: 'bim',  showFor: ['COM'] },
+  { id: 'A_Baterias',            num: 11, label: 'Estado y limpieza de baterías',             type: 'bim',  showFor: ['PIL','COM','EXC','GRU','OTR'] },
+  { id: 'A_Fugas_Aceite_Motor',  num: 12, label: 'Fugas de aceite en motor',                  type: 'sino', badVal: 'SI', showFor: ['PIL','COM','EXC','GRU','OTR'] },
+  { id: 'A_Fugas_Mangueras',     num: 13, label: 'Fugas en mangueras hidráulicas',            type: 'sino', badVal: 'SI', showFor: ['PIL','COM','EXC','GRU','OTR'] },
+  { id: 'A_Limpieza_General',    num: 14, label: 'Limpieza general de la máquina',            type: 'sino', invertSino: true, showFor: ['PIL','COM','EXC','GRU','OTR'] },
+  { id: 'A_Cables_Acero_Ganchos',num: 15, label: 'Estado de cables de acero y ganchos',      type: 'bim',               showFor: ['PIL','COM','EXC','GRU','OTR'] },
+  { id: 'A_Ruidos_Extraños',     num: 16, label: 'Durante operación hubo ruidos extraños',    type: 'sino', badVal: 'SI', showFor: ['PIL','COM','EXC','GRU','OTR'] },
+  { id: 'A_Engrase',             num: 17, label: 'Engrase de maquinaria',                     type: 'sino', invertSino: true, showFor: ['PIL','COM','EXC','GRU','OTR'] },
+];
+
+// Checklist Variante B (Planta de Inyección)
+const CL_B = [
+  { id: 'B_Aceite_Hidraulico',      num: 3,  label: 'Nivel de aceite hidráulico',   type: 'bim'  },
+  { id: 'B_Fuga_Hidraulico',        num: 5,  label: 'Fuga de hidráulico',           type: 'sino', badVal: 'SI' },
+  { id: 'B_Fuga_Lechada',           num: 6,  label: 'Fuga de lechada',              type: 'sino', badVal: 'SI' },
+  { id: 'B_Limpieza_Bomba',         num: 7,  label: 'Limpieza de bomba',            type: 'sino' },
+  { id: 'B_Limpieza_Agitador',      num: 8,  label: 'Limpieza de agitador',         type: 'sino' },
+  { id: 'B_Limpieza_Turbo',         num: 9,  label: 'Limpieza de turbo',            type: 'sino' },
+  { id: 'B_Estado_Motor_Agitador',  num: 10, label: 'Estado de motor agitador',     type: 'bim'  },
+  { id: 'B_Estado_Motor_Turbo',     num: 11, label: 'Estado de motor turbo',        type: 'bim'  },
+  { id: 'B_Estado_Motor_Bomba',     num: 12, label: 'Estado de motor de bomba',     type: 'bim'  },
+  { id: 'B_Estado_Cuenta_Litros',   num: 13, label: 'Estado de cuenta litros',      type: 'bim'  },
+  { id: 'B_Estado_Panel_Electrico', num: 14, label: 'Estado de panel eléctrico',    type: 'bim'  },
+];
+
+// ══════════════════════════════════════════════════════════
+//  ESTADO
+// ══════════════════════════════════════════════════════════
+const APP = {
+  currentStep: 1,
+  totalSteps: 5,
+  tipo: '',
+  maquinas: [],
+  weeklyPrev: { horas: 0, ml: 0, bolsas: 0 },
+  checklistValues: {},
+  draftTimer: null,
+};
+
+// ══════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  initPWA();
+  buildStepNav();
+  buildTipoGrid();
+  setDefaultDate();
+  loadMaquinas();
+  loadDraft();
+  showStep(1);
+  startAutosave();
+});
+
+// ══════════════════════════════════════════════════════════
+//  PWA — Manifest + Service Worker
+// ══════════════════════════════════════════════════════════
+function initPWA() {
+  const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#1B5E20" rx="80"/><text x="256" y="370" text-anchor="middle" fill="white" font-family="Arial Black,sans-serif" font-size="320" font-weight="900">G</text></svg>`;
+  const iconUrl = 'data:image/svg+xml;base64,' + btoa(iconSvg);
+
+  const manifest = {
+    name: 'Bitácora Digital — Geotécnica Soluciones',
+    short_name: 'Bitácora GEO',
+    description: 'Check List Diario de Revisión de Equipos',
+    theme_color: '#1B5E20',
+    background_color: '#1B5E20',
+    display: 'standalone',
+    orientation: 'portrait',
+    start_url: './',
+    icons: [{ src: iconUrl, sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+  document.getElementById('pwa-manifest').href = URL.createObjectURL(blob);
+
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+      const CACHE='bitacora-geo-v1';
+      self.addEventListener('install',e=>{self.skipWaiting();});
+      self.addEventListener('activate',e=>e.waitUntil(clients.claim()));
+      self.addEventListener('fetch',e=>{
+        if(e.request.method!=='GET')return;
+        e.respondWith(caches.open(CACHE).then(c=>c.match(e.request).then(hit=>hit||fetch(e.request).then(r=>{c.put(e.request,r.clone());return r;}))));
+      });
+    `;
+    const swBlob = new Blob([swCode], { type: 'text/javascript' });
+    navigator.serviceWorker.register(URL.createObjectURL(swBlob), { scope: './' })
+      .catch(() => {});
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+//  WIZARD NAVIGATION
+// ══════════════════════════════════════════════════════════
+function buildStepNav() {
+  const nav = document.getElementById('stepNav');
+  nav.innerHTML = STEP_LABELS.map((lbl, i) => {
+    const n = i + 1;
+    return `
+      <div class="step-item">
+        <div class="step-bubble" id="bubble-${n}">${n}</div>
+        <div class="step-label" id="slabel-${n}">${lbl}</div>
+      </div>
+      ${n < STEP_LABELS.length ? '<div class="step-connector"></div>' : ''}
+    `;
+  }).join('');
+}
+
+function updateStepNav() {
+  for (let i = 1; i <= APP.totalSteps; i++) {
+    const b = document.getElementById(`bubble-${i}`);
+    const l = document.getElementById(`slabel-${i}`);
+    b.className = 'step-bubble' + (i < APP.currentStep ? ' done' : i === APP.currentStep ? ' active' : '');
+    l.className = 'step-label' + (i === APP.currentStep ? ' active' : '');
+    if (i < APP.currentStep) b.textContent = '✓';
+    else b.textContent = i;
+  }
+}
+
+function showStep(n) {
+  for (let i = 1; i <= APP.totalSteps; i++) {
+    document.getElementById(`step-${i}`).classList.toggle('active', i === n);
+  }
+  APP.currentStep = n;
+  updateStepNav();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  if (n === 3) refreshProductionView();
+  if (n === 4) buildChecklist();
+}
+
+function goNext() {
+  if (!validateStep(APP.currentStep)) return;
+  if (APP.currentStep < APP.totalSteps) showStep(APP.currentStep + 1);
+}
+
+function goPrev() {
+  if (APP.currentStep > 1) showStep(APP.currentStep - 1);
+}
+
+// ══════════════════════════════════════════════════════════
+//  PASO 1 — Tipo y Equipo
+// ══════════════════════════════════════════════════════════
+function buildTipoGrid() {
+  const grid = document.getElementById('tipoGrid');
+  grid.innerHTML = TIPOS_EQUIPO.map(t => `
+    <button type="button" class="tipo-btn" data-code="${t.codigo}" onclick="selectTipo('${t.codigo}', this)">
+      <span class="tipo-icon">${t.icon}</span>
+      <span class="tipo-label">${t.label}</span>
+    </button>
+  `).join('');
+}
+
+function selectTipo(code, btn) {
+  APP.tipo = code;
+  document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('equipoField').style.display = 'block';
+  filterMaquinasByTipo(code);
+  saveDraft();
+}
+
+function filterMaquinasByTipo(tipo) {
+  const sel = document.getElementById('sel_equipo');
+  const filtered = APP.maquinas.filter(m => m.tipo === tipo);
+  sel.innerHTML = '<option value="">— Seleccionar equipo —</option>' +
+    filtered.map(m => `<option value="${escHtml(m.nombre)}">${escHtml(m.nombre)}</option>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+//  PASO 2 — Fechas
+// ══════════════════════════════════════════════════════════
+const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+
+function setDefaultDate() {
+  const today = new Date();
+  const iso = today.toISOString().split('T')[0];
+  document.getElementById('f_fecha').value = iso;
+  updateDiaAndSemana(today);
+
+  document.getElementById('f_fecha').addEventListener('change', e => {
+    const d = e.target.value ? new Date(e.target.value + 'T12:00:00') : new Date();
+    updateDiaAndSemana(d);
+  });
+}
+
+function updateDiaAndSemana(date) {
+  document.getElementById('f_dia').textContent = DIAS[date.getDay()];
+  document.getElementById('f_semana').value = getWeekNumber(date);
+}
+
+function getWeekNumber(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
+// ══════════════════════════════════════════════════════════
+//  PASO 3 — Producción
+// ══════════════════════════════════════════════════════════
+function refreshProductionView() {
+  const isINY = APP.tipo === 'INY';
+  const isPIL = APP.tipo === 'PIL';
+  document.getElementById('prod-a').classList.toggle('hidden', isINY);
+  document.getElementById('prod-b').classList.toggle('hidden', !isINY);
+  document.getElementById('ml_field').classList.toggle('hidden', !isPIL);
+  document.getElementById('ml_semana_field').classList.toggle('hidden', !isPIL);
+}
+
+function calcHoras() {
+  const ini = parseFloat(document.getElementById('f_horo_ini').value) || 0;
+  const fin = parseFloat(document.getElementById('f_horo_fin').value) || 0;
+  const diff = Math.max(0, fin - ini);
+  document.getElementById('f_horas_dia').textContent = diff.toFixed(1) + ' h';
+  updateWeeklyDisplay();
+}
+
+function calcHorasB() {
+  const ini = parseFloat(document.getElementById('f_horo_ini_b').value) || 0;
+  const fin = parseFloat(document.getElementById('f_horo_fin_b').value) || 0;
+  const diff = Math.max(0, fin - ini);
+  document.getElementById('f_horas_dia_b').textContent = diff.toFixed(1) + ' h';
+  updateWeeklyDisplayB();
+}
+
+function updateWeeklyDisplay() {
+  const ini = parseFloat(document.getElementById('f_horo_ini').value) || 0;
+  const fin = parseFloat(document.getElementById('f_horo_fin').value) || 0;
+  const horasHoy = Math.max(0, fin - ini);
+  const ml = parseFloat(document.getElementById('f_ml').value) || 0;
+  const totalH = APP.weeklyPrev.horas + horasHoy;
+  const totalML = APP.weeklyPrev.ml + ml;
+  document.getElementById('f_horas_semana').textContent = totalH.toFixed(1) + ' h';
+  document.getElementById('f_ml_semana').textContent = totalML.toFixed(1) + ' m';
+}
+
+function updateWeeklyDisplayB() {
+  const ini = parseFloat(document.getElementById('f_horo_ini_b').value) || 0;
+  const fin = parseFloat(document.getElementById('f_horo_fin_b').value) || 0;
+  const horasHoy = Math.max(0, fin - ini);
+  const bolsas = parseInt(document.getElementById('f_bolsas').value) || 0;
+  const totalH = APP.weeklyPrev.horas + horasHoy;
+  const totalBolsas = APP.weeklyPrev.bolsas + bolsas;
+  document.getElementById('f_horas_semana_b').textContent = totalH.toFixed(1) + ' h';
+  document.getElementById('f_bolsas_semana').textContent = totalBolsas + ' uds';
+}
+
+async function fetchWeeklyTotals() {
+  const equipo = document.getElementById('sel_equipo').value;
+  const semana = document.getElementById('f_semana').value;
+  const fecha  = document.getElementById('f_fecha').value;
+  const año    = fecha ? fecha.split('-')[0] : new Date().getFullYear();
+  if (!equipo || !semana || SCRIPT_URL.includes('REEMPLAZAR')) {
+    showToast('Configura la URL del script primero', true);
+    return;
+  }
+  try {
+    const url = `${SCRIPT_URL}?action=getWeeklyTotals&equipo=${encodeURIComponent(equipo)}&semana=${semana}&anio=${año}&fecha=${fecha}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.status === 'ok') {
+      APP.weeklyPrev = data.data;
+      if (APP.tipo === 'INY') { updateWeeklyDisplayB(); }
+      else { updateWeeklyDisplay(); }
+      showToast('Totales actualizados ✓');
+    }
+  } catch (_) {
+    showToast('No se pudo obtener totales (sin conexión)', true);
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+//  PASO 4 — Checklist
+// ══════════════════════════════════════════════════════════
+function buildChecklist() {
+  const body = document.getElementById('checklist-body');
+  body.innerHTML = '';
+  APP.checklistValues = {};
+
+  const items = APP.tipo === 'INY' ? CL_B : CL_A.filter(it => it.showFor.includes(APP.tipo));
+
+  items.forEach(item => {
+    const wrap = document.createElement('div');
+    wrap.className = 'check-item';
+    wrap.id = `ci-${item.id}`;
+
+    const labelEl = document.createElement('div');
+    labelEl.className = 'check-label';
+    labelEl.innerHTML = `<span class="check-num">${item.num}.</span>${item.label}`;
+    wrap.appendChild(labelEl);
+
+    const controls = document.createElement('div');
+    if (item.type === 'fuel') {
+      controls.className = 'fuel-group';
+      ['E','1/4','1/2','3/4','F'].forEach(v => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'fuel-btn';
+        btn.textContent = v;
+        btn.dataset.v = v;
+        btn.dataset.id = item.id;
+        btn.onclick = () => selectFuel(item.id, v, btn, wrap);
+        controls.appendChild(btn);
+      });
+    } else {
+      controls.className = 'pill-group';
+      const opts = item.type === 'bim' ? ['B','I','M'] : ['SI','NO'];
+      opts.forEach(v => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'pill';
+        if (item.invertSino) btn.dataset.invert = 'true';
+        btn.textContent = v;
+        btn.dataset.v = v;
+        btn.dataset.id = item.id;
+        btn.onclick = () => selectPill(item.id, v, btn, wrap, item.badVal);
+        controls.appendChild(btn);
+      });
+    }
+    wrap.appendChild(controls);
+
+    body.appendChild(wrap);
+  });
+}
+
+function selectPill(id, value, btn, wrap, badVal) {
+  const group = btn.closest('.pill-group');
+  group.querySelectorAll('.pill').forEach(p => p.classList.remove('selected'));
+  btn.classList.add('selected');
+  APP.checklistValues[id] = value;
+  wrap.classList.toggle('malo', value === 'M');
+  saveDraft();
+}
+
+function selectFuel(id, value, btn, wrap) {
+  btn.closest('.fuel-group').querySelectorAll('.fuel-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  APP.checklistValues[id] = value;
+  saveDraft();
+}
+
+// ══════════════════════════════════════════════════════════
+//  VALIDACIÓN
+// ══════════════════════════════════════════════════════════
+function validateStep(n) {
+  let ok = true;
+  let msg = '';
+
+  if (n === 1) {
+    if (!APP.tipo) { msg = 'Selecciona el tipo de equipo'; ok = false; }
+    else if (!document.getElementById('sel_equipo').value) { msg = 'Selecciona el nombre del equipo'; ok = false; }
+  }
+
+  if (n === 2) {
+    const req = ['f_operador','f_fecha','f_proyecto'];
+    for (const id of req) {
+      if (!document.getElementById(id).value.trim()) {
+        msg = 'Completa todos los campos obligatorios (*)';
+        ok = false;
+        document.getElementById(id).focus();
+        break;
+      }
+    }
+  }
+
+  if (n === 3) {
+    if (APP.tipo === 'INY') {
+      if (!document.getElementById('f_horo_ini_b').value || !document.getElementById('f_horo_fin_b').value)
+        { msg = 'Ingresa los horómetros'; ok = false; }
+    } else {
+      if (!document.getElementById('f_horo_ini').value || !document.getElementById('f_horo_fin').value)
+        { msg = 'Ingresa los horómetros'; ok = false; }
+      if (!ok) {}
+      else if (APP.tipo === 'PIL' && !document.getElementById('f_ml').value)
+        { msg = 'Ingresa los metros lineales perforados'; ok = false; }
+    }
+  }
+
+  if (n === 4) {
+    // No obligatorio — el operador puede avanzar sin llenar todo el checklist
+  }
+
+  if (!ok && msg) showToast(msg, true);
+  return ok;
+}
+
+// ══════════════════════════════════════════════════════════
+//  SUBMIT
+// ══════════════════════════════════════════════════════════
+async function submitForm() {
+  if (!validateStep(5)) return;
+
+  const f_firma_op = document.getElementById('f_firma_op').value.trim();
+  const f_firma_ing = document.getElementById('f_firma_ing').value.trim();
+  if (!f_firma_op || !f_firma_ing) {
+    showToast('Completa los campos de firma', true);
+    return;
+  }
+
+  if (SCRIPT_URL.includes('REEMPLAZAR')) {
+    showToast('Configura la URL del script en el código', true);
+    return;
+  }
+
+  const fecha = document.getElementById('f_fecha').value;
+  const fecha_d = fecha ? new Date(fecha + 'T12:00:00') : new Date();
+  const ini = parseFloat(APP.tipo === 'INY' ? document.getElementById('f_horo_ini_b').value : document.getElementById('f_horo_ini').value) || 0;
+  const fin = parseFloat(APP.tipo === 'INY' ? document.getElementById('f_horo_fin_b').value : document.getElementById('f_horo_fin').value) || 0;
+  const horasDia = Math.max(0, fin - ini);
+  const ml = APP.tipo === 'PIL' ? (parseFloat(document.getElementById('f_ml').value) || 0) : 0;
+  const bolsas = APP.tipo === 'INY' ? (parseInt(document.getElementById('f_bolsas').value) || 0) : 0;
+  const horasSemana = APP.weeklyPrev.horas + horasDia;
+  const mlSemana   = APP.weeklyPrev.ml   + ml;
+  const bolsasSemana = APP.weeklyPrev.bolsas + bolsas;
+
+  // Collect observations per checklist item
+  const items = APP.tipo === 'INY' ? CL_B : CL_A.filter(it => it.showFor.includes(APP.tipo));
+  const obsPartes = items
+    .filter(it => APP.checklistValues[it.id] === 'M' || APP.checklistValues[it.id] === 'SI')
+    .map(it => {
+      const txt = document.getElementById(`obstext-${it.id}`)?.value?.trim();
+      return `[${it.num}. ${it.label}]: ${txt}`;
+    });
+  const obsGeneral = document.getElementById('f_obs').value.trim();
+  const obsAll = [...obsPartes, obsGeneral].filter(Boolean).join(' | ');
+
+  const payload = {
+    Nombre_Equipo: document.getElementById('sel_equipo').value,
+    Tipo_Equipo:   APP.tipo,
+    Operador:      document.getElementById('f_operador').value.trim(),
+    Fecha:         fecha,
+    Dia:           DIAS[fecha_d.getDay()],
+    Proyecto:      document.getElementById('f_proyecto').value.trim(),
+    Horometro_Inicio: ini,
+    Horometro_Fin:    fin,
+    Horas_Dia:        horasDia,
+    ML_Perforados:    ml,
+    Bolsas_Concreto:  bolsas,
+    Horas_Semana:     Math.round(horasSemana * 100) / 100,
+    ML_Semana:        Math.round(mlSemana * 100) / 100,
+    Bolsas_Semana:    bolsasSemana,
+    Observaciones:    obsAll,
+    Firma_Operador:     f_firma_op,
+    Firma_Ing_Proyecto: f_firma_ing,
+  };
+
+  // Add checklist values
+  items.forEach(it => { payload[it.id] = APP.checklistValues[it.id] || ''; });
+  // Also add observations per item
+  items.forEach(it => {
+    const txt = document.getElementById(`obstext-${it.id}`)?.value?.trim();
+    if (txt) payload[`${it.id}_Obs`] = txt;
+  });
+
+  showLoading(true);
+  document.getElementById('submitBtn').disabled = true;
+
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      redirect: 'follow',
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+
+    if (data.status === 'success') {
+      showLoading(false);
+      showToast('Bitácora enviada correctamente ✅');
+      clearDraft();
+      setTimeout(() => {
+        if (confirm('Bitácora enviada. ¿Llenar una nueva bitácora?')) resetForm();
+      }, 2000);
+    } else {
+      throw new Error(data.message || 'Error desconocido');
+    }
+  } catch (err) {
+    showLoading(false);
+    document.getElementById('submitBtn').disabled = false;
+    // Save to pending queue
+    savePending(payload);
+    showToast('Sin conexión — guardado localmente para reenvío', true);
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+//  DRAFT — localStorage
+// ══════════════════════════════════════════════════════════
+const DRAFT_KEY = 'bitacora_draft_v2';
+const PENDING_KEY = 'bitacora_pending_v2';
+
+function startAutosave() {
+  APP.draftTimer = setInterval(saveDraft, 30000);
+}
+
+function saveDraft() {
+  try {
+    const draft = {
+      tipo: APP.tipo,
+      checklistValues: APP.checklistValues,
+      fields: captureFields(),
+      ts: Date.now(),
+    };
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    const el = document.getElementById('draftStatus');
+    if (el) el.textContent = 'Borrador guardado: ' + new Date().toLocaleTimeString();
+  } catch (_) {}
+}
+
+function captureFields() {
+  const ids = ['f_operador','f_fecha','f_proyecto',
+                'f_horo_ini','f_horo_fin','f_ml','f_bolsas',
+                'f_horo_ini_b','f_horo_fin_b',
+                'f_obs','f_firma_op','f_firma_ing'];
+  const out = {};
+  ids.forEach(id => { const el = document.getElementById(id); if (el) out[id] = el.value; });
+  // Capture equipo selection
+  const sel = document.getElementById('sel_equipo');
+  if (sel) out['sel_equipo'] = sel.value;
+  return out;
+}
+
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return;
+    const draft = JSON.parse(raw);
+    const age = (Date.now() - (draft.ts || 0)) / 3600000; // hours
+    if (age > 24) { localStorage.removeItem(DRAFT_KEY); return; }
+
+    if (draft.tipo) {
+      APP.tipo = draft.tipo;
+      APP.checklistValues = draft.checklistValues || {};
+      const btn = document.querySelector(`.tipo-btn[data-code="${draft.tipo}"]`);
+      if (btn) { btn.classList.add('selected'); document.getElementById('equipoField').style.display = 'block'; filterMaquinasByTipo(draft.tipo); }
+    }
+    if (draft.fields) {
+      Object.entries(draft.fields).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val;
+      });
+      // Recalc dia
+      const fechaEl = document.getElementById('f_fecha');
+      if (fechaEl.value) {
+        const d = new Date(fechaEl.value + 'T12:00:00');
+        document.getElementById('f_dia').textContent = DIAS[d.getDay()];
+      }
+    }
+  } catch (_) {}
+}
+
+function clearDraft() {
+  localStorage.removeItem(DRAFT_KEY);
+}
+
+function savePending(payload) {
+  try {
+    const pending = JSON.parse(localStorage.getItem(PENDING_KEY) || '[]');
+    pending.push({ payload, ts: Date.now() });
+    localStorage.setItem(PENDING_KEY, JSON.stringify(pending));
+  } catch (_) {}
+}
+
+async function retrySendPending() {
+  const pending = JSON.parse(localStorage.getItem(PENDING_KEY) || '[]');
+  if (!pending.length) return;
+  const remaining = [];
+  for (const item of pending) {
+    try {
+      const res = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain'}, redirect:'follow', body: JSON.stringify(item.payload) });
+      const data = await res.json();
+      if (data.status !== 'success') remaining.push(item);
+    } catch (_) { remaining.push(item); }
+  }
+  localStorage.setItem(PENDING_KEY, JSON.stringify(remaining));
+  if (remaining.length < pending.length) showToast(`${pending.length - remaining.length} bitácora(s) pendiente(s) enviadas ✅`);
+}
+
+// Attempt to send pending on connection restore
+window.addEventListener('online', retrySendPending);
+
+// ══════════════════════════════════════════════════════════
+//  RESET FORM
+// ══════════════════════════════════════════════════════════
+function resetForm() {
+  APP.tipo = '';
+  APP.checklistValues = {};
+  APP.weeklyPrev = { horas: 0, ml: 0, bolsas: 0 };
+  document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('equipoField').style.display = 'none';
+  const ids = ['f_operador','f_proyecto','f_pep','f_horo_ini','f_horo_fin','f_ml','f_bolsas',
+               'f_horo_ini_b','f_horo_fin_b','f_obs','f_firma_op','f_firma_sup','f_firma_ing'];
+  ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  setDefaultDate();
+  document.getElementById('submitBtn').disabled = false;
+  showStep(1);
+}
+
+// ══════════════════════════════════════════════════════════
+//  LOAD MAQUINAS
+// ══════════════════════════════════════════════════════════
+async function loadMaquinas() {
+  if (SCRIPT_URL.includes('REEMPLAZAR')) return;
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=getMaquinas`);
+    const data = await res.json();
+    if (data.status === 'ok' && Array.isArray(data.data)) {
+      APP.maquinas = data.data;
+      localStorage.setItem('bitacora_maquinas', JSON.stringify(data.data));
+    }
+  } catch (_) {
+    // Fallback: use cached list
+    try {
+      const cached = localStorage.getItem('bitacora_maquinas');
+      if (cached) APP.maquinas = JSON.parse(cached);
+    } catch (__) {}
+  }
+  if (APP.tipo) filterMaquinasByTipo(APP.tipo);
+}
+
+// ══════════════════════════════════════════════════════════
+//  UI HELPERS
+// ══════════════════════════════════════════════════════════
+function showToast(msg, isError = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show' + (isError ? ' error' : '');
+  setTimeout(() => { el.className = ''; }, 3500);
+}
+
+function showLoading(show) {
+  document.getElementById('loading').style.display = show ? 'flex' : 'none';
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
