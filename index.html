@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1B5E20">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Bitácora GEO">
+  <meta name="description" content="Check List Diario de Revisión de Equipos — Geotécnica Soluciones">
+  <title>Bitácora Digital — Geotécnica</title>
+  <link rel="manifest" id="pwa-manifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green:      #1B5E20;
+      --green2:     #2E7D32;
+      --green3:     #43A047;
+      --green-bg:   #E8F5E9;
+      --green-light:#F1F8F2;
+      --red:        #B71C1C;
+      --red2:       #E53935;
+      --red-bg:     #FFEBEE;
+      --amber:      #E65100;
+      --amber-bg:   #FFF3E0;
+      --text:       #0D1B0F;
+      --text2:      #4A5568;
+      --text3:      #9AA5B1;
+      --border:     #E2E8E3;
+      --card-bg:    #FFFFFF;
+      --page-bg:    #EEF2EF;
+      --radius:     16px;
+      --radius-sm:  10px;
+      --shadow:     0 2px 12px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04);
+      --shadow-lg:  0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.05);
+      --touch:      50px;
+      --font:       'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --transition: 0.18s cubic-bezier(.4,0,.2,1);
+    }
+    html { font-family: var(--font); font-size: 15px; background: var(--page-bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+    body { min-height: 100vh; padding-bottom: 40px; }
+    input, select, textarea, button { font-family: var(--font); font-size: 1rem; }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: var(--green3) !important;
+      box-shadow: 0 0 0 3px rgba(67,160,71,0.15);
+    }
+
+    /* ── HEADER ─────────────────────────────── */
+    .app-header {
+      background: var(--green);
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.22);
+    }
+    .header-inner {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 18px 12px;
+    }
+    .logo-circle {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: rgba(255,255,255,0.15);
+      border: 1.5px solid rgba(255,255,255,0.25);
+      backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 900; flex-shrink: 0; color: #fff;
+      letter-spacing: -1px;
+    }
+    .header-text { flex: 1; }
+    .header-text h1 { font-size: 0.92rem; font-weight: 700; color: #fff; line-height: 1.2; letter-spacing: -0.01em; }
+    .header-text p  { font-size: 0.65rem; color: rgba(255,255,255,0.65); margin-top: 1px; letter-spacing: 0.02em; }
+    .header-stripe { height: 3px; background: linear-gradient(90deg, #66BB6A, #A5D6A7 60%, transparent); opacity: 0.6; }
+
+    /* ── STEP NAV ────────────────────────────── */
+    .step-nav {
+      background: var(--green2); padding: 10px 16px 13px;
+      display: flex; justify-content: space-between; align-items: center; gap: 4px;
+    }
+    .step-item { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+    .step-bubble {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(255,255,255,0.18); color: rgba(255,255,255,0.6);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700;
+      border: 2px solid rgba(255,255,255,0.22); transition: all 0.25s;
+    }
+    .step-bubble.active {
+      background: #fff; color: var(--green); border-color: #fff;
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.2);
+    }
+    .step-bubble.done { background: var(--green3); color: #fff; border-color: var(--green3); }
+    .step-label { font-size: 0.55rem; color: rgba(255,255,255,0.6); text-align: center; line-height: 1.2; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+    .step-label.active { color: #fff; }
+    .step-connector { flex: 0 0 16px; height: 2px; background: rgba(255,255,255,0.18); margin-top: -16px; }
+    /* progress fill line */
+    .step-progress { height: 3px; background: rgba(255,255,255,0.1); }
+    .step-progress-fill { height: 100%; background: var(--green3); transition: width 0.4s ease; }
+
+    main { max-width: 600px; margin: 0 auto; padding: 18px 16px; }
+
+    /* ── CARDS ───────────────────────────────── */
+    .card {
+      background: var(--card-bg); border-radius: var(--radius);
+      box-shadow: var(--shadow); margin-bottom: 14px;
+      border: 1px solid var(--border); overflow: hidden;
+    }
+    .card-header {
+      background: var(--green-light); padding: 13px 18px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid #D6E8D8;
+    }
+    .card-header h2 {
+      font-size: 0.88rem; font-weight: 700; color: var(--green);
+      letter-spacing: -0.01em; display: flex; align-items: center; gap: 6px;
+    }
+    .card-body { padding: 18px; }
+
+    /* ── FIELDS ──────────────────────────────── */
+    .field { margin-bottom: 16px; }
+    .field:last-child { margin-bottom: 0; }
+    label {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 0.75rem; font-weight: 600; color: var(--text2);
+      margin-bottom: 6px; letter-spacing: 0.01em;
+    }
+    label .req { color: var(--red2); font-size: 0.82rem; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    input[type="text"], input[type="number"], input[type="date"], select, textarea {
+      width: 100%; height: var(--touch); padding: 0 14px;
+      border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--page-bg); color: var(--text); font-size: 0.95rem;
+      font-weight: 500; transition: border-color var(--transition), box-shadow var(--transition);
+      -webkit-appearance: none;
+    }
+    input[type="text"]:not(:placeholder-shown),
+    input[type="number"]:not(:placeholder-shown),
+    input[type="date"]:not([value=""]) { background: #fff; }
+    input::placeholder { color: var(--text3); font-weight: 400; }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath fill='%234A5568' d='M5 7L0 0h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
+      background-color: var(--page-bg); cursor: pointer;
+    }
+    textarea { height: auto; min-height: 88px; padding: 12px 14px; resize: vertical; line-height: 1.5; background: var(--page-bg); }
+    .readonly-field {
+      width: 100%; height: var(--touch); padding: 0 14px;
+      border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      background: #E9EDE9; color: var(--text2); font-size: 0.95rem;
+      display: flex; align-items: center; font-weight: 500;
+    }
+    .calc-badge {
+      font-size: 0.62rem; background: var(--green-bg); color: var(--green2);
+      padding: 2px 8px; border-radius: 20px; margin-left: 6px;
+      font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    }
+
+    /* ── TIPO GRID ───────────────────────────── */
+    .tipo-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .tipo-btn {
+      aspect-ratio: 1; border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border); background: var(--page-bg);
+      cursor: pointer; padding: 10px 8px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 6px; transition: all var(--transition); text-align: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tipo-btn:active { transform: scale(0.96); }
+    .tipo-btn.selected {
+      border-color: var(--green2); background: var(--green-bg);
+      box-shadow: 0 0 0 3px rgba(46,125,50,0.12);
+    }
+    .tipo-icon  { font-size: 1.6rem; line-height: 1; }
+    .tipo-label { font-size: 0.7rem; font-weight: 600; color: var(--text); line-height: 1.3; }
+    .tipo-btn.selected .tipo-label { color: var(--green2); }
+
+    /* ── PILLS ───────────────────────────────── */
+    .pill-group { display: flex; gap: 7px; }
+    .pill {
+      flex: 1; height: 46px; border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border); background: var(--page-bg);
+      font-size: 0.85rem; font-weight: 700; cursor: pointer;
+      transition: all var(--transition); -webkit-tap-highlight-color: transparent;
+      letter-spacing: 0.01em; color: var(--text2);
+    }
+    .pill:active { transform: scale(0.96); }
+    .pill[data-v="B"].selected { background: #E8F5E9; border-color: #2E7D32; color: #1B5E20; box-shadow: inset 0 0 0 1px #2E7D32; }
+    .pill[data-v="I"].selected { background: #FFF3E0; border-color: #E65100; color: #BF360C; box-shadow: inset 0 0 0 1px #E65100; }
+    .pill[data-v="M"].selected { background: #FFEBEE; border-color: var(--red2); color: var(--red); box-shadow: inset 0 0 0 1px var(--red2); }
+    .pill[data-v="SI"].selected { background: #FFEBEE; border-color: var(--red2); color: var(--red); box-shadow: inset 0 0 0 1px var(--red2); }
+    .pill[data-v="NO"].selected { background: #E8F5E9; border-color: #2E7D32; color: #1B5E20; box-shadow: inset 0 0 0 1px #2E7D32; }
+    .pill[data-invert="true"][data-v="SI"].selected { background: #E8F5E9; border-color: #2E7D32; color: #1B5E20; box-shadow: inset 0 0 0 1px #2E7D32; }
+    .pill[data-invert="true"][data-v="NO"].selected { background: #FFEBEE; border-color: var(--red2); color: var(--red); box-shadow: inset 0 0 0 1px var(--red2); }
+
+    /* ── FUEL ────────────────────────────────── */
+    .fuel-group { display: flex; gap: 0; border: 1.5px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--page-bg); }
+    .fuel-btn {
+      flex: 1; height: 46px; border: none; border-right: 1px solid var(--border);
+      background: transparent; font-size: 0.82rem; font-weight: 700;
+      cursor: pointer; color: var(--text2);
+      transition: all var(--transition); -webkit-tap-highlight-color: transparent;
+    }
+    .fuel-btn:last-child { border-right: none; }
+    .fuel-btn.selected { background: var(--green); color: #fff; }
+
+    /* ── CHECKLIST ───────────────────────────── */
+    .check-item {
+      padding: 14px 0; border-bottom: 1px solid #EAEEED;
+      transition: background var(--transition);
+    }
+    .check-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .check-item.malo {
+      background: var(--red-bg); margin: 0 -18px; padding: 14px 18px;
+      border-radius: 8px; border-bottom: none; margin-bottom: 2px;
+    }
+    .check-label {
+      font-size: 0.85rem; font-weight: 500; color: var(--text); margin-bottom: 10px;
+      line-height: 1.4; display: flex; align-items: baseline; gap: 7px;
+    }
+    .check-num {
+      font-size: 0.68rem; font-weight: 700; color: var(--text3);
+      background: var(--page-bg); border: 1px solid var(--border);
+      padding: 1px 6px; border-radius: 5px; flex-shrink: 0;
+      font-variant-numeric: tabular-nums; min-width: 26px; text-align: center;
+    }
+    .check-item.malo .check-label { color: var(--red); }
+    .check-item.malo .check-num { background: var(--red-bg); border-color: #FFCDD2; color: var(--red2); }
+
+    /* Section separator inside checklist */
+    .check-sep {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 0 8px; font-size: 0.68rem; font-weight: 700;
+      color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .check-sep::before, .check-sep::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* ── BUTTONS ─────────────────────────────── */
+    .nav-bar {
+      display: flex; gap: 10px; margin-top: 20px;
+      position: sticky; bottom: 0;
+      background: linear-gradient(transparent, var(--page-bg) 45%);
+      padding: 24px 0 10px;
+    }
+    .btn {
+      flex: 1; min-height: 52px; border-radius: 14px;
+      font-size: 0.95rem; font-weight: 700; cursor: pointer;
+      border: none; transition: all var(--transition);
+      font-family: var(--font); letter-spacing: -0.01em;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-outline { background: var(--card-bg); color: var(--green); border: 1.5px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .btn-primary { background: var(--green); color: #fff; box-shadow: 0 4px 14px rgba(27,94,32,0.28); }
+    .btn-submit  { background: linear-gradient(135deg, var(--green2), var(--green)); color: #fff; font-size: 1rem; box-shadow: 0 4px 18px rgba(27,94,32,0.32); }
+    .btn:disabled { opacity: 0.45; pointer-events: none; }
+
+    .banner {
+      background: var(--amber-bg); border-left: 4px solid var(--amber);
+      padding: 10px 14px; border-radius: var(--radius-sm);
+      font-size: 0.8rem; color: var(--amber); margin-bottom: 14px; font-weight: 500;
+    }
+
+    /* ── TOAST ───────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: var(--text); color: #fff; padding: 13px 22px;
+      border-radius: 50px; font-size: 0.88rem; font-weight: 600;
+      box-shadow: var(--shadow-lg); z-index: 999;
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+      white-space: nowrap; max-width: 90vw; text-align: center;
+    }
+    #toast.show  { transform: translateX(-50%) translateY(0); }
+    #toast.error { background: var(--red); }
+
+    /* ── LOADING ─────────────────────────────── */
+    #loading {
+      position: fixed; inset: 0; background: rgba(15,30,17,0.82);
+      backdrop-filter: blur(4px);
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 1000;
+    }
+    .spinner {
+      width: 48px; height: 48px;
+      border: 4px solid rgba(255,255,255,0.2); border-top-color: #fff;
+      border-radius: 50%; animation: spin 0.75s linear infinite;
+    }
+    .loading-text { color: #fff; margin-top: 16px; font-size: 0.9rem; font-weight: 600; opacity: 0.9; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .step { display: none; }
+    .step.active { display: block; }
+    .hidden { display: none !important; }
+
+    .draft-bar {
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+      font-size: 0.68rem; color: var(--text3); padding: 5px 0 0; font-weight: 500;
+    }
+    .section-divider {
+      font-size: 0.72rem; font-weight: 700; color: var(--green);
+      text-transform: uppercase; letter-spacing: 0.07em;
+      margin-bottom: 12px; padding-bottom: 8px;
+      border-bottom: 1.5px solid var(--green-bg);
+    }
+
+    /* ── SUBMIT CARD ─────────────────────────── */
+    #step-5 .card:last-of-type { background: var(--green-light); }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-inner">
+    <div class="logo-circle">G</div>
+    <div class="header-text">
+      <h1>Bitácora Digital de Flota</h1>
+      <p>Geotécnica Soluciones · Tegucigalpa, HN</p>
+    </div>
+  </div>
+  <div class="header-stripe"></div>
+</header>
+
+<nav class="step-nav" id="stepNav"></nav>
+<div class="step-progress"><div class="step-progress-fill" id="stepProgressFill" style="width:20%"></div></div>
+
+<main id="mainForm">
+
+  <!-- PASO 1 -->
+  <section class="step" id="step-1">
+    <div class="card">
+      <div class="card-header"><h2>🔧 Tipo de Equipo</h2></div>
+      <div class="card-body">
+        <div class="field">
+          <label>Selecciona el tipo de equipo <span class="req">*</span></label>
+          <div class="tipo-grid" id="tipoGrid"></div>
+        </div>
+        <div class="field" id="equipoField" style="display:none">
+          <label for="sel_equipo">Nombre del equipo <span class="req">*</span></label>
+          <select id="sel_equipo"><option value="">— Seleccionar equipo —</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <button class="btn btn-primary" onclick="goNext()">Siguiente →</button>
+    </div>
+  </section>
+
+  <!-- PASO 2 -->
+  <section class="step" id="step-2">
+    <div class="card">
+      <div class="card-header"><h2>📋 Datos Generales</h2></div>
+      <div class="card-body">
+        <div class="field">
+          <label for="f_operador">Operador <span class="req">*</span></label>
+          <input type="text" id="f_operador" placeholder="Nombre completo del operador">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="f_fecha">Fecha <span class="req">*</span></label>
+            <input type="date" id="f_fecha">
+          </div>
+          <div class="field">
+            <label>Día de la semana</label>
+            <div class="readonly-field" id="f_dia">—</div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="f_proyecto">Proyecto <span class="req">*</span></label>
+          <input type="text" id="f_proyecto" placeholder="Nombre del proyecto">
+        </div>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <button class="btn btn-outline" onclick="goPrev()">← Anterior</button>
+      <button class="btn btn-primary" onclick="goNext()">Siguiente →</button>
+    </div>
+  </section>
+
+  <!-- PASO 3 -->
+  <section class="step" id="step-3">
+
+    <!-- Variante A -->
+    <div class="card" id="prod-a">
+      <div class="card-header"><h2>⚙️ Producción</h2></div>
+      <div class="card-body">
+        <div class="field-row">
+          <div class="field">
+            <label for="f_horo_ini">Horómetro inicial <span class="req">*</span></label>
+            <input type="number" id="f_horo_ini" step="0.1" min="0" placeholder="0.0" oninput="calcHoras()">
+          </div>
+          <div class="field">
+            <label for="f_horo_fin">Horómetro final <span class="req">*</span></label>
+            <input type="number" id="f_horo_fin" step="0.1" min="0" placeholder="0.0" oninput="calcHoras()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Total de horas diarias <span class="calc-badge">AUTO</span></label>
+          <div class="readonly-field" id="f_horas_dia">0.0 h</div>
+        </div>
+        <div class="field hidden" id="ml_field">
+          <label for="f_ml">Metros lineales perforados <span class="req">*</span></label>
+          <input type="number" id="f_ml" step="0.1" min="0" placeholder="0.0">
+        </div>
+      </div>
+    </div>
+
+    <!-- Variante B -->
+    <div class="card hidden" id="prod-b">
+      <div class="card-header"><h2>⚙️ Producción</h2></div>
+      <div class="card-body">
+        <div class="field">
+          <label for="f_horas_dia_b_input">Total de horas <span style="font-size:0.75rem;color:#888">(opcional)</span></label>
+          <input type="number" id="f_horas_dia_b_input" step="0.1" min="0" placeholder="0.0">
+        </div>
+        <div class="field">
+          <label for="f_bolsas">Bolsas de concreto <span class="req">*</span></label>
+          <input type="number" id="f_bolsas" step="1" min="0" placeholder="0">
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-bar">
+      <button class="btn btn-outline" onclick="goPrev()">← Anterior</button>
+      <button class="btn btn-primary" onclick="goNext()">Siguiente →</button>
+    </div>
+  </section>
+
+  <!-- PASO 4 -->
+  <section class="step" id="step-4">
+    <div class="card">
+      <div class="card-header"><h2>🔍 Revisiones Diarias</h2></div>
+      <div class="card-body" id="checklist-body"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h2>📝 Observaciones Generales</h2></div>
+      <div class="card-body">
+        <div class="field">
+          <label for="f_obs">Observaciones</label>
+          <textarea id="f_obs" placeholder="Ingrese cualquier observación adicional..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <button class="btn btn-outline" onclick="goPrev()">← Anterior</button>
+      <button class="btn btn-primary" onclick="goNext()">Siguiente →</button>
+    </div>
+  </section>
+
+  <!-- PASO 5 -->
+  <section class="step" id="step-5">
+    <div class="card">
+      <div class="card-header"><h2>✍️ Firmas de Cierre</h2></div>
+      <div class="card-body">
+        <div class="banner">Nombre completo de cada responsable.</div>
+        <div class="field">
+          <label for="f_firma_op">Operador <span class="req">*</span></label>
+          <input type="text" id="f_firma_op" placeholder="Nombre completo del operador">
+        </div>
+        <div class="field">
+          <label for="f_firma_ing">Ing. de Proyecto <span class="req">*</span></label>
+          <input type="text" id="f_firma_ing" placeholder="Nombre completo del ingeniero">
+        </div>
+      </div>
+    </div>
+    <div class="card" style="background:var(--green-bg)">
+      <div class="card-body" style="text-align:center;padding:20px">
+        <div style="font-size:0.82rem;color:var(--text2);margin-bottom:14px;line-height:1.5">Al enviar, esta bitácora quedará registrada en Google Sheets.</div>
+        <button class="btn btn-submit" id="submitBtn" onclick="submitForm()" style="max-width:320px;margin:0 auto;display:block">✓ &nbsp;Enviar Bitácora</button>
+        <div class="draft-bar" id="draftStatus">💾 Borrador guardado automáticamente</div>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <button class="btn btn-outline" onclick="goPrev()">← Anterior</button>
+    </div>
+  </section>
+
+</main>
+
+<div id="toast" role="alert"></div>
+<div id="loading"><div class="spinner"></div><div class="loading-text">Enviando bitácora...</div></div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYxKG8sxlRGQJrbZxGVeXhpu8YRrbgeHPYuqM_4FLtUOy5Ng2Hffts7hTm5B7iFmYi/exec';
+
+const TIPOS_EQUIPO = [
+  { codigo:'PIL', label:'Piloteadora / Perforadora', icon:'🔩' },
+  { codigo:'COM', label:'Compresor',                 icon:'💨' },
+  { codigo:'EXC', label:'Excavadora CAT',            icon:'🚜' },
+  { codigo:'GRU', label:'Grúa Grove',                icon:'🏗️' },
+  { codigo:'INY', label:'Planta de Inyección',       icon:'🧪' },
+  { codigo:'OTR', label:'Otro equipo',               icon:'⚙️' },
+];
+
+const STEP_LABELS = ['Equipo','Datos','Producción','Revisiones','Firmas'];
+
+const CL_A = [
+  { id:'A_Combustible',          num:1,  label:'Nivel de combustible',                       type:'fuel', showFor:['PIL','COM','EXC','GRU','OTR'] },
+  { id:'A_Aceite_Motor',         num:2,  label:'Nivel de aceite de motor',                   type:'bim',  showFor:['PIL','COM','EXC','GRU','OTR'] },
+  { id:'A_Aceite_Hidraulico',    num:3,  label:'Nivel de aceite hidráulico',                 type:'bim',  showFor:['PIL','COM','EXC','GRU','OTR'] },
+  { id:'A_Reservorio_Compresores',num:4, label:'Nivel de reservorio de aceite "Compresores"',type:'bim',  showFor:['COM'] },
+  { id:'A_Aceite_Bombas_MR',     num:5,  label:'Nivel de aceite de bombas M.R.',             type:'bim',  showFor:['PIL','COM','EXC','GRU','OTR'] },
+  { id:'A_Coolant_Agua',         num:6,  label:'Nivel de coolant / agua',                    type:'bim',  showFor:['PIL','COM','EXC','GRU','OTR'] },
+  { id:'A_Aceite_Mesa_Rotacion', num:7,  label:'Nivel de aceite mesa de rotación o cabezote',type:'bim',  showFor:['PIL','COM','EXC','GRU','OTR'] },
+  { id:'A_Filtro_Sep_Combustible',num:8, label:'Filtro separador agua/combustible',          type:'bim',  showFor:['PIL','COM','EXC','GRU','OTR'] },
+  { id:'A_Filtro_Aire_Motor',    num:9,  label:'Filtro de aire de motor',                    type:'bim',  showFor:['PIL','COM','EXC','GRU','OTR'] },
+  { id:'A_Filtro_Aire_Compresor',num:10, label:'Filtro de aire de unidad compresora',        type:'bim',  showFor:['COM'] },
+  { id:'A_Baterias',             num:11, label:'Estado y limpieza de baterías',              type:'bim',  showFor:['PIL','COM','EXC','GRU','OTR'] },
+  { id:'A_Fugas_Aceite_Motor',   num:12, label:'Fugas de aceite en motor',                   type:'sino', badVal:'SI', showFor:['PIL','COM','EXC','GRU','OTR'] },
+  { id:'A_Fugas_Mangueras',      num:13, label:'Fugas en mangueras hidráulicas',             type:'sino', badVal:'SI', showFor:['PIL','COM','EXC','GRU','OTR'] },
+  { id:'A_Limpieza_General',     num:14, label:'Limpieza general de la máquina',             type:'sino', invertSino:true, showFor:['PIL','COM','EXC','GRU','OTR'] },
+  { id:'A_Cables_Acero_Ganchos', num:15, label:'Estado de cables de acero y ganchos',       type:'bim',  showFor:['PIL','COM','EXC','GRU','OTR'] },
+  { id:'A_Ruidos_Extraños',      num:16, label:'Durante operación hubo ruidos extraños',     type:'sino', badVal:'SI', showFor:['PIL','COM','EXC','GRU','OTR'] },
+  { id:'A_Engrase',              num:17, label:'Engrase de maquinaria',                      type:'sino', invertSino:true, showFor:['PIL','COM','EXC','GRU','OTR'] },
+];
+
+const CL_B = [
+  { id:'B_Aceite_Hidraulico',      num:3,  label:'Nivel de aceite hidráulico',  type:'bim'  },
+  { id:'B_Fuga_Hidraulico',        num:5,  label:'Fuga de hidráulico',          type:'sino', badVal:'SI' },
+  { id:'B_Fuga_Lechada',           num:6,  label:'Fuga de lechada',             type:'sino', badVal:'SI' },
+  { id:'B_Limpieza_Bomba',         num:7,  label:'Limpieza de bomba',           type:'sino' },
+  { id:'B_Limpieza_Agitador',      num:8,  label:'Limpieza de agitador',        type:'sino' },
+  { id:'B_Limpieza_Turbo',         num:9,  label:'Limpieza de turbo',           type:'sino' },
+  { id:'B_Estado_Motor_Agitador',  num:10, label:'Estado de motor agitador',    type:'bim'  },
+  { id:'B_Estado_Motor_Turbo',     num:11, label:'Estado de motor turbo',       type:'bim'  },
+  { id:'B_Estado_Motor_Bomba',     num:12, label:'Estado de motor de bomba',    type:'bim'  },
+  { id:'B_Estado_Cuenta_Litros',   num:13, label:'Estado de cuenta litros',     type:'bim'  },
+  { id:'B_Estado_Panel_Electrico', num:14, label:'Estado de panel eléctrico',   type:'bim'  },
+];
+
+const APP = {
+  currentStep: 1, totalSteps: 5,
+  tipo: '', maquinas: [],
+  checklistValues: {}, draftTimer: null,
+};
+
+const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+
+document.addEventListener('DOMContentLoaded', () => {
+  initPWA(); buildStepNav(); buildTipoGrid();
+  setDefaultDate(); loadMaquinas(); loadDraft();
+  showStep(1); startAutosave();
+});
+
+function initPWA() {
+  const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#1B5E20" rx="80"/><text x="256" y="370" text-anchor="middle" fill="white" font-family="Arial Black,sans-serif" font-size="320" font-weight="900">G</text></svg>`;
+  const iconUrl = 'data:image/svg+xml;base64,' + btoa(iconSvg);
+  const manifest = { name:'Bitácora Digital — Geotécnica Soluciones', short_name:'Bitácora GEO', theme_color:'#1B5E20', background_color:'#EEF2EF', display:'standalone', orientation:'portrait', start_url:'./', icons:[{src:iconUrl,sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}] };
+  const blob = new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'});
+  document.getElementById('pwa-manifest').href = URL.createObjectURL(blob);
+  if ('serviceWorker' in navigator) {
+    const swCode = `const C='bitacora-geo-v1';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(caches.open(C).then(c=>c.match(e.request).then(h=>h||fetch(e.request).then(r=>{c.put(e.request,r.clone());return r;}))));});`;
+    navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode],{type:'text/javascript'})),{scope:'./'}).catch(()=>{});
+  }
+}
+
+function buildStepNav() {
+  document.getElementById('stepNav').innerHTML = STEP_LABELS.map((lbl,i) => {
+    const n = i+1;
+    return `<div class="step-item"><div class="step-bubble" id="bubble-${n}">${n}</div><div class="step-label" id="slabel-${n}">${lbl}</div></div>${n<STEP_LABELS.length?'<div class="step-connector"></div>':''}`;
+  }).join('');
+}
+
+function updateStepNav() {
+  for (let i=1;i<=APP.totalSteps;i++) {
+    const b=document.getElementById(`bubble-${i}`), l=document.getElementById(`slabel-${i}`);
+    b.className='step-bubble'+(i<APP.currentStep?' done':i===APP.currentStep?' active':'');
+    l.className='step-label'+(i===APP.currentStep?' active':'');
+    b.textContent = i<APP.currentStep?'✓':i;
+  }
+  const fill = document.getElementById('stepProgressFill');
+  if (fill) fill.style.width = (APP.currentStep / APP.totalSteps * 100) + '%';
+}
+
+function showStep(n) {
+  for (let i=1;i<=APP.totalSteps;i++) document.getElementById(`step-${i}`).classList.toggle('active',i===n);
+  APP.currentStep=n; updateStepNav();
+  window.scrollTo({top:0,behavior:'smooth'});
+  if (n===3) refreshProductionView();
+  if (n===4) buildChecklist();
+}
+
+function goNext() { if (validateStep(APP.currentStep) && APP.currentStep<APP.totalSteps) showStep(APP.currentStep+1); }
+function goPrev() { if (APP.currentStep>1) showStep(APP.currentStep-1); }
+
+function buildTipoGrid() {
+  document.getElementById('tipoGrid').innerHTML = TIPOS_EQUIPO.map(t =>
+    `<button type="button" class="tipo-btn" data-code="${t.codigo}" onclick="selectTipo('${t.codigo}',this)"><span class="tipo-icon">${t.icon}</span><span class="tipo-label">${t.label}</span></button>`
+  ).join('');
+}
+
+function selectTipo(code, btn) {
+  APP.tipo = code;
+  document.querySelectorAll('.tipo-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('equipoField').style.display='block';
+  filterMaquinasByTipo(code); saveDraft();
+}
+
+function filterMaquinasByTipo(tipo) {
+  const sel = document.getElementById('sel_equipo');
+  const filtered = APP.maquinas.filter(m=>m.tipo===tipo);
+  sel.innerHTML='<option value="">— Seleccionar equipo —</option>'+filtered.map(m=>`<option value="${escHtml(m.nombre)}">${escHtml(m.nombre)}</option>`).join('');
+}
+
+function setDefaultDate() {
+  const today = new Date();
+  document.getElementById('f_fecha').value = today.toISOString().split('T')[0];
+  document.getElementById('f_dia').textContent = DIAS[today.getDay()];
+  document.getElementById('f_fecha').addEventListener('change', e => {
+    const d = e.target.value ? new Date(e.target.value+'T12:00:00') : new Date();
+    document.getElementById('f_dia').textContent = DIAS[d.getDay()];
+  });
+}
+
+function getWeekNumber(date) {
+  const d = new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));
+  const dayNum = d.getUTCDay()||7;
+  d.setUTCDate(d.getUTCDate()+4-dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  return Math.ceil((((d-yearStart)/86400000)+1)/7);
+}
+
+function refreshProductionView() {
+  const isINY = APP.tipo==='INY', isPIL = APP.tipo==='PIL';
+  document.getElementById('prod-a').classList.toggle('hidden',isINY);
+  document.getElementById('prod-b').classList.toggle('hidden',!isINY);
+  document.getElementById('ml_field').classList.toggle('hidden',!isPIL);
+}
+
+function calcHoras() {
+  const ini=parseFloat(document.getElementById('f_horo_ini').value)||0;
+  const fin=parseFloat(document.getElementById('f_horo_fin').value)||0;
+  document.getElementById('f_horas_dia').textContent=Math.max(0,fin-ini).toFixed(1)+' h';
+}
+
+const CL_A_SECTIONS = [
+  { beforeId: 'A_Combustible',       label: 'Niveles' },
+  { beforeId: 'A_Fugas_Aceite_Motor',label: 'Fugas' },
+  { beforeId: 'A_Limpieza_General',  label: 'Mantenimiento' },
+];
+const CL_B_SECTIONS = [
+  { beforeId: 'B_Aceite_Hidraulico', label: 'Niveles' },
+  { beforeId: 'B_Fuga_Hidraulico',   label: 'Fugas' },
+  { beforeId: 'B_Limpieza_Bomba',    label: 'Limpieza' },
+  { beforeId: 'B_Estado_Motor_Agitador', label: 'Estado de Motores' },
+];
+
+function buildChecklist() {
+  const body = document.getElementById('checklist-body');
+  body.innerHTML=''; APP.checklistValues={};
+  const items = APP.tipo==='INY' ? CL_B : CL_A.filter(it=>it.showFor.includes(APP.tipo));
+  const sections = APP.tipo==='INY' ? CL_B_SECTIONS : CL_A_SECTIONS;
+  items.forEach(item => {
+    // Insertar separador de sección si corresponde
+    const sec = sections.find(s => s.beforeId === item.id);
+    if (sec) {
+      const sep = document.createElement('div');
+      sep.className = 'check-sep';
+      sep.textContent = sec.label;
+      body.appendChild(sep);
+    }
+    const wrap = document.createElement('div');
+    wrap.className='check-item'; wrap.id=`ci-${item.id}`;
+    const labelEl = document.createElement('div');
+    labelEl.className='check-label';
+    labelEl.innerHTML=`<span class="check-num">${item.num}.</span>${item.label} <span class="req">*</span>`;
+    wrap.appendChild(labelEl);
+    const controls = document.createElement('div');
+    if (item.type==='fuel') {
+      controls.className='fuel-group';
+      ['E','1/4','1/2','3/4','F'].forEach(v => {
+        const btn=document.createElement('button'); btn.type='button'; btn.className='fuel-btn';
+        btn.textContent=v; btn.dataset.v=v;
+        btn.onclick=()=>selectFuel(item.id,v,btn,wrap);
+        controls.appendChild(btn);
+      });
+    } else {
+      controls.className='pill-group';
+      const opts = item.type==='bim'?['B','I','M']:['SI','NO'];
+      opts.forEach(v => {
+        const btn=document.createElement('button'); btn.type='button'; btn.className='pill';
+        if (item.invertSino) btn.dataset.invert='true';
+        btn.textContent=v; btn.dataset.v=v;
+        btn.onclick=()=>selectPill(item.id,v,btn,wrap,item.badVal);
+        controls.appendChild(btn);
+      });
+    }
+    wrap.appendChild(controls);
+    body.appendChild(wrap);
+  });
+}
+
+function selectPill(id, value, btn, wrap, badVal) {
+  btn.closest('.pill-group').querySelectorAll('.pill').forEach(p=>p.classList.remove('selected'));
+  btn.classList.add('selected');
+  APP.checklistValues[id]=value;
+  const isBad = value==='M' || (badVal && value===badVal);
+  wrap.classList.toggle('malo', isBad);
+  saveDraft();
+}
+
+function selectFuel(id, value, btn, wrap) {
+  btn.closest('.fuel-group').querySelectorAll('.fuel-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  APP.checklistValues[id]=value;
+  saveDraft();
+}
+
+function validateStep(n) {
+  let ok=true, msg='';
+  if (n===1) {
+    if (!APP.tipo) { msg='Selecciona el tipo de equipo'; ok=false; }
+    else if (!document.getElementById('sel_equipo').value) { msg='Selecciona el nombre del equipo'; ok=false; }
+  }
+  if (n===2) {
+    for (const id of ['f_operador','f_fecha','f_proyecto']) {
+      if (!document.getElementById(id).value.trim()) { msg='Completa todos los campos obligatorios (*)'; ok=false; document.getElementById(id).focus(); break; }
+    }
+  }
+  if (n===3) {
+    if (APP.tipo!=='INY') {
+      if (!document.getElementById('f_horo_ini').value||!document.getElementById('f_horo_fin').value) { msg='Ingresa los horómetros'; ok=false; }
+      else if (APP.tipo==='PIL'&&!document.getElementById('f_ml').value) { msg='Ingresa los metros lineales perforados'; ok=false; }
+    }
+  }
+  if (n===4) {
+    const items = APP.tipo==='INY'?CL_B:CL_A.filter(it=>it.showFor.includes(APP.tipo));
+    for (const item of items) {
+      if (!APP.checklistValues[item.id]) {
+        msg=`Completa el ítem ${item.num}: ${item.label}`; ok=false;
+        document.getElementById(`ci-${item.id}`)?.scrollIntoView({behavior:'smooth',block:'center'}); break;
+      }
+    }
+  }
+  if (!ok&&msg) showToast(msg,true);
+  return ok;
+}
+
+async function submitForm() {
+  const f_firma_op  = document.getElementById('f_firma_op').value.trim();
+  const f_firma_ing = document.getElementById('f_firma_ing').value.trim();
+  if (!f_firma_op||!f_firma_ing) { showToast('Completa los campos de firma',true); return; }
+  const fecha   = document.getElementById('f_fecha').value;
+  const fecha_d = fecha?new Date(fecha+'T12:00:00'):new Date();
+  const ini = parseFloat(document.getElementById('f_horo_ini').value)||0;
+  const fin = parseFloat(document.getElementById('f_horo_fin').value)||0;
+  const horasDia = APP.tipo==='INY'
+    ? (parseFloat(document.getElementById('f_horas_dia_b_input').value)||0)
+    : Math.max(0,fin-ini);
+  const ml     = APP.tipo==='PIL'?(parseFloat(document.getElementById('f_ml').value)||0):0;
+  const bolsas = APP.tipo==='INY'?(parseInt(document.getElementById('f_bolsas').value)||0):0;
+  const semana = getWeekNumber(fecha_d);
+
+  const payload = {
+    Nombre_Equipo: document.getElementById('sel_equipo').value,
+    Tipo_Equipo:   APP.tipo,
+    Operador:      document.getElementById('f_operador').value.trim(),
+    Semana:        semana,
+    Fecha:         fecha,
+    Dia:           DIAS[fecha_d.getDay()],
+    Proyecto:      document.getElementById('f_proyecto').value.trim(),
+    Horometro_Inicio: APP.tipo==='INY'?'':ini,
+    Horometro_Fin:    APP.tipo==='INY'?'':fin,
+    Horas_Dia:        horasDia,
+    ML_Perforados:    ml,
+    Bolsas_Concreto:  bolsas,
+    Observaciones:    document.getElementById('f_obs').value.trim(),
+    Firma_Operador:     f_firma_op,
+    Firma_Ing_Proyecto: f_firma_ing,
+  };
+
+  const items = APP.tipo==='INY'?CL_B:CL_A.filter(it=>it.showFor.includes(APP.tipo));
+  items.forEach(it=>{ payload[it.id]=APP.checklistValues[it.id]||''; });
+
+  showLoading(true);
+  document.getElementById('submitBtn').disabled=true;
+  try {
+    const res  = await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain'},redirect:'follow',body:JSON.stringify(payload)});
+    const data = await res.json();
+    if (data.status==='success') {
+      showLoading(false); showToast('Bitácora enviada correctamente ✅');
+      clearDraft();
+      setTimeout(()=>{ if(confirm('Bitácora enviada. ¿Llenar una nueva?')) resetForm(); },2000);
+    } else throw new Error(data.message||'Error');
+  } catch(err) {
+    showLoading(false);
+    document.getElementById('submitBtn').disabled=false;
+    savePending(payload);
+    showToast('Sin conexión — guardado para reenvío',true);
+  }
+}
+
+const DRAFT_KEY='bitacora_draft_v2', PENDING_KEY='bitacora_pending_v2';
+
+function startAutosave() { setInterval(saveDraft,30000); }
+
+function saveDraft() {
+  try {
+    const draft = { tipo:APP.tipo, checklistValues:APP.checklistValues, fields:captureFields(), ts:Date.now() };
+    localStorage.setItem(DRAFT_KEY,JSON.stringify(draft));
+    const el=document.getElementById('draftStatus');
+    if(el) el.textContent='Borrador guardado: '+new Date().toLocaleTimeString();
+  } catch(_){}
+}
+
+function captureFields() {
+  const ids=['f_operador','f_fecha','f_proyecto','f_horo_ini','f_horo_fin','f_ml','f_bolsas','f_horas_dia_b_input','f_obs','f_firma_op','f_firma_ing'];
+  const out={};
+  ids.forEach(id=>{ const el=document.getElementById(id); if(el) out[id]=el.value; });
+  out['sel_equipo']=document.getElementById('sel_equipo')?.value||'';
+  return out;
+}
+
+function loadDraft() {
+  try {
+    const raw=localStorage.getItem(DRAFT_KEY); if(!raw) return;
+    const draft=JSON.parse(raw);
+    if ((Date.now()-(draft.ts||0))/3600000>24) { localStorage.removeItem(DRAFT_KEY); return; }
+    if (draft.tipo) {
+      APP.tipo=draft.tipo; APP.checklistValues=draft.checklistValues||{};
+      const btn=document.querySelector(`.tipo-btn[data-code="${draft.tipo}"]`);
+      if(btn){ btn.classList.add('selected'); document.getElementById('equipoField').style.display='block'; filterMaquinasByTipo(draft.tipo); }
+    }
+    if (draft.fields) {
+      Object.entries(draft.fields).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val; });
+      const fechaEl=document.getElementById('f_fecha');
+      if(fechaEl.value) document.getElementById('f_dia').textContent=DIAS[new Date(fechaEl.value+'T12:00:00').getDay()];
+    }
+  } catch(_){}
+}
+
+function clearDraft() { localStorage.removeItem(DRAFT_KEY); }
+
+function savePending(payload) {
+  try {
+    const p=JSON.parse(localStorage.getItem(PENDING_KEY)||'[]');
+    p.push({payload,ts:Date.now()}); localStorage.setItem(PENDING_KEY,JSON.stringify(p));
+  } catch(_){}
+}
+
+async function retrySendPending() {
+  const pending=JSON.parse(localStorage.getItem(PENDING_KEY)||'[]'); if(!pending.length) return;
+  const remaining=[];
+  for (const item of pending) {
+    try {
+      const res=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain'},redirect:'follow',body:JSON.stringify(item.payload)});
+      const data=await res.json();
+      if(data.status!=='success') remaining.push(item);
+    } catch(_){ remaining.push(item); }
+  }
+  localStorage.setItem(PENDING_KEY,JSON.stringify(remaining));
+  if(remaining.length<pending.length) showToast(`${pending.length-remaining.length} bitácora(s) pendiente(s) enviadas ✅`);
+}
+
+window.addEventListener('online',retrySendPending);
+
+function resetForm() {
+  APP.tipo=''; APP.checklistValues={};
+  document.querySelectorAll('.tipo-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('equipoField').style.display='none';
+  ['f_operador','f_proyecto','f_horo_ini','f_horo_fin','f_ml','f_bolsas','f_horas_dia_b_input','f_obs','f_firma_op','f_firma_ing']
+    .forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('submitBtn').disabled=false;
+  setDefaultDate(); showStep(1);
+}
+
+async function loadMaquinas() {
+  try {
+    const res=await fetch(`${SCRIPT_URL}?action=getMaquinas`);
+    const data=await res.json();
+    if(data.status==='ok'&&Array.isArray(data.data)) {
+      APP.maquinas=data.data; localStorage.setItem('bitacora_maquinas',JSON.stringify(data.data));
+    }
+  } catch(_) {
+    try { const c=localStorage.getItem('bitacora_maquinas'); if(c) APP.maquinas=JSON.parse(c); } catch(__) {}
+  }
+  if(APP.tipo) filterMaquinasByTipo(APP.tipo);
+}
+
+function showToast(msg,isError=false) {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='show'+(isError?' error':'');
+  setTimeout(()=>{ el.className=''; },3500);
+}
+
+function showLoading(show) { document.getElementById('loading').style.display=show?'flex':'none'; }
+
+function escHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>
